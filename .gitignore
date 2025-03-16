@@ -1,0 +1,76 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Dd]ist/
+[Dd]istPublic/
+[Dd]ebugServer/
+[Dd]ebugFull/
+Release/
+ReleasePublic/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.vbproj.user
+*.vscode/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows Installer Logs
+*.cab
+*.msi
+*.msm
+*.msp
+
+# User-specific files (Windows)
+Thumbs.db
+Desktop.ini
+
+# JetBrains Rider
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# VS for Mac
+.vscode/
+.vs/
+
+# NUGET
+*.nupkg
+# The packages folder can be ignored because of NuGet
+# Uncomment if you have the directory in your repo.
+# .nuget/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# VS Code directories
+.vscode/
+
+# .NET Core build output
+bin/
+obj/
+
+# Local history for Visual Studio Code
+.vscode/history/
