@@ -25,12 +25,12 @@ jobs:
         run: |
           dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
           mkdir -p artifacts
-          zip -r artifacts/MyApp-windows.zip bin/Release/net7.0/win-x64/publish/
+          zip -r artifacts/MyApp-windows.zip bin/Release/net9.0/win-x64/publish/
 
       - name: Publish for Linux (Astra Linux compatible)
         run: |
           dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
-          tar -czvf artifacts/MyApp-linux.tar.gz -C bin/Release/net7.0/linux-x64/publish .
+          tar -czvf artifacts/MyApp-linux.tar.gz -C bin/Release/net9.0/linux-x64/publish .
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
