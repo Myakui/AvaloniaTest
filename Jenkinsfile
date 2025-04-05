@@ -1,7 +1,8 @@
 pipeline {
     agent any
     environment {
-        DOTNET_VERSION = '8.0'
+        DOTNET_VERSION = '8.0'  // Версия .NET SDK
+        DOTNET_INSTALL_SCRIPT = 'dotnet-install.ps1'  // Установочный скрипт для .NET
     }
     stages {
         stage('Checkout') {
@@ -11,30 +12,34 @@ pipeline {
         }
         stage('Setup .NET') {
             steps {
-                powershell 'Invoke-WebRequest https://dot.net/v1/dotnet-install.sh -OutFile dotnet-install.sh'
-                powershell 'chmod +x dotnet-install.sh'
-                powershell './dotnet-install.sh --version $env.DOTNET_VERSION'
-                powershell '$env:PATH = "$HOME/.dotnet;$env:PATH"'
+                script {
+                    // Скачиваем .NET установочный скрипт для Windows
+                    bat 'Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "$env:DOTNET_INSTALL_SCRIPT"'
+                    // Запуск установки .NET
+                    bat "& .\\$env:DOTNET_INSTALL_SCRIPT -Version $env:DOTNET_VERSION"
+                    // Добавляем .NET в PATH
+                    bat '$env:PATH += ";$env:USERPROFILE\\.dotnet"'
+                }
             }
         }
         stage('Restore dependencies') {
             steps {
-                powershell '$HOME/.dotnet/dotnet restore'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet restore'
             }
         }
         stage('Build') {
             steps {
-                powershell '$HOME/.dotnet/dotnet build --configuration Release'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet build --configuration Release'
             }
         }
         stage('Test') {
             steps {
-                powershell '$HOME/.dotnet/dotnet test --configuration Release'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet test --configuration Release'
             }
         }
         stage('Publish') {
             steps {
-                powershell '$HOME/.dotnet/dotnet publish -c Release -o ./publish'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet publish -c Release -o ./publish'
             }
         }
     }
