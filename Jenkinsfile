@@ -1,8 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOTNET_VERSION = '8.0'  // Версия .NET SDK
-        DOTNET_INSTALL_SCRIPT = 'dotnet-install.ps1'  // Установочный скрипт для .NET
+        DOTNET_VERSION = '8.0'
+        DOTNET_INSTALL_SCRIPT = 'dotnet-install.ps1'
+        DOTNET_ROOT = "${env.USERPROFILE}\\.dotnet"
     }
     stages {
         stage('Checkout') {
@@ -12,34 +13,30 @@ pipeline {
         }
         stage('Setup .NET') {
             steps {
-                script {
-                    // Скачиваем .NET установочный скрипт для Windows
-                    bat 'Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "$env:DOTNET_INSTALL_SCRIPT"'
-                    // Запуск установки .NET
-                    bat "& .\\$env:DOTNET_INSTALL_SCRIPT -Version $env:DOTNET_VERSION"
-                    // Добавляем .NET в PATH
-                    bat '$env:PATH += ";$env:USERPROFILE\\.dotnet"'
-                }
+                powershell '''
+                    Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "$env:DOTNET_INSTALL_SCRIPT"
+                    powershell -ExecutionPolicy Bypass -File "$env:DOTNET_INSTALL_SCRIPT" -Version $env:DOTNET_VERSION
+                '''
             }
         }
-        stage('Restore dependencies') {
+        stage('Restore') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet restore'
+                bat '"%USERPROFILE%\\.dotnet\\dotnet.exe" restore'
             }
         }
         stage('Build') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet build --configuration Release'
+                bat '"%USERPROFILE%\\.dotnet\\dotnet.exe" build --configuration Release'
             }
         }
         stage('Test') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet test --configuration Release'
+                bat '"%USERPROFILE%\\.dotnet\\dotnet.exe" test --configuration Release'
             }
         }
         stage('Publish') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet publish -c Release -o ./publish'
+                bat '"%USERPROFILE%\\.dotnet\\dotnet.exe" publish --configuration Release --output "%USERPROFILE%\\Desktop\\AvaloniaPublish"'
             }
         }
     }
