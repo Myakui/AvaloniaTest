@@ -1,34 +1,64 @@
 ﻿pipeline {
     agent any
+
     environment {
-        DOTNET_VERSION = '8.0'  // Âåðñèÿ .NET SDK
-        DOTNET_INSTALL_SCRIPT = 'dotnet-install.ps1'  // Óñòàíîâî÷íûé ñêðèïò äëÿ .NET
+        SOLUTION = 'AvaloniaTest.sln'
+        PROJECT = 'AvaloniaTest.csproj'
+        CONFIGURATION = 'Release'
+        PLATFORM = 'x64'
     }
+
     stages {
+        stage('Clean workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Myakui/AvaloniaTest.git'
             }
         }
-        stage('Restore dependencies') {
+
+        stage('Restore') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet restore'
+                bat "dotnet restore ${env.SOLUTION}"
             }
         }
+
         stage('Build') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet build --configuration Release'
+                bat 'dotnet build AvaloniaTest.sln -c Release'
+                script {
+                    if (currentBuild.result == 'FAILURE') {
+                        error("Build failed!")
+                    }
+                }
             }
         }
-        stage('Test') {
-            steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet test --configuration Release'
-            }
-        }
+
         stage('Publish') {
             steps {
-                bat '$env:USERPROFILE\\.dotnet\\dotnet publish -c Release -o ./publish'
+                bat 'dotnet publish %SOLUTION% -c Release -r win-x64 --self-contained'
+                script {
+                    if (currentBuild.result == 'FAILURE') {
+                        error("Publish failed!")
+                    }
+                }
             }
+        }
+
+        stage('Tests (skipped)') {
+            steps {
+                echo 'Нет проекта с тестами. Пропускаем.'
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/bin/x64/Release/net9.0/win-x64/publish/**', allowEmptyArchive: true
         }
     }
 }
