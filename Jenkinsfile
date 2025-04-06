@@ -1,29 +1,33 @@
-pipeline {
+﻿pipeline {
     agent any
-    options {
-        skipStagesAfterUnstable()
+    environment {
+        DOTNET_VERSION = '8.0'  // Âåðñèÿ .NET SDK
+        DOTNET_INSTALL_SCRIPT = 'dotnet-install.ps1'  // Óñòàíîâî÷íûé ñêðèïò äëÿ .NET
     }
     stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Myakui/AvaloniaTest.git'
+            }
+        }
+        stage('Restore dependencies') {
+            steps {
+                bat '$env:USERPROFILE\\.dotnet\\dotnet restore'
+            }
+        }
         stage('Build') {
             steps {
-                sh 'dotnet restore'
-                sh 'dotnet build --no-restore'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet build --configuration Release'
             }
         }
         stage('Test') {
             steps {
-                sh 'dotnet test --no-build --no-restore --collect "XPlat Code Coverage"'
+                bat '$env:USERPROFILE\\.dotnet\\dotnet test --configuration Release'
             }
         }
-        }
-        stage('Deliver') { 
+        stage('Publish') {
             steps {
-                sh 'dotnet publish SimpleWebApi --no-restore -o published'  
-            }
-            post {
-                success {
-                    archiveArtifacts 'published/*.*' 
-                }
+                bat '$env:USERPROFILE\\.dotnet\\dotnet publish -c Release -o ./publish'
             }
         }
     }
