@@ -44,6 +44,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish/linux
+          mkdir -p artifacts 
           tar -czvf artifacts/MyApp-linux.tar.gz -C publish/linux .
 
       - name: Upload Artifacts
