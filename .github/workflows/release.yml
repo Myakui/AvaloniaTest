@@ -1,16 +1,17 @@
-name: Build and Release Avalonia App
+name: Build, Test and Release Avalonia App
 
 on:
   push:
-    branches:
-      - main
     tags:
-      - "v*"
+      - 'v*'
 
 jobs:
   build:
-    name: Build for Windows and Linux
-    runs-on: ubuntu-latest
+    name: Build, Test and Package for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
 
     steps:
       - name: Checkout repository
@@ -21,39 +22,32 @@ jobs:
         with:
           dotnet-version: "9.0.x"
 
-      - name: Publish for Windows
-        run: |
-          dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
-          mkdir -p artifacts
-          zip -r artifacts/MyApp-windows.zip bin/Release/net9.0/win-x64/publish/
+      - name: Restore dependencies
+        run: dotnet restore
 
-      - name: Publish for Linux (Astra Linux compatible)
+      - name: Build the app
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run unit tests
+        if: ${{ hashFiles('**/*Tests.csproj') != '' }}
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Publish for Windows
+        if: matrix.os == 'windows-latest'
         run: |
-          dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
-          tar -czvf artifacts/MyApp-linux.tar.gz -C bin/Release/net9.0/linux-x64/publish .
+          dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish/win
+          7z a artifacts/MyApp-windows.zip ./publish/win/*
+
+      - name: Publish for Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish/linux
+          tar -czvf artifacts/MyApp-linux.tar.gz -C publish/linux .
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: build-artifacts-${{ matrix.os }}
           path: artifacts/*
 
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
 
-    steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: artifacts
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
