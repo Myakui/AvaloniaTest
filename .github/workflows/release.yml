@@ -79,7 +79,7 @@ jobs:
           name: build-artifacts-linux
           path: artifacts/*
 
-  # Джоба для релиза (создание релиза в GitHub)
+   # Джоба для релиза (создание релиза в GitHub)
   release:
     name: Create GitHub Release
     needs: [build_windows, build_linux]
