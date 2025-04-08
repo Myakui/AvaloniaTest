@@ -34,7 +34,7 @@ jobs:
 
       - name: Publish for Windows
         run: |
-          dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish/win
+          dotnet publish ./AvaloniaTest/AvaloniaTest.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish/win
           7z a artifacts/MyApp-windows.zip ./publish/win/*
 
       - name: Upload Windows Artifacts
@@ -69,8 +69,7 @@ jobs:
 
       - name: Publish for Linux
         run: |
-          dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish/linux
-          mkdir -p artifacts  # Ensure the artifacts directory exists
+          dotnet publish ./AvaloniaTest/AvaloniaTest.csproj -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ./publish/linux
           tar -czvf artifacts/MyApp-linux.tar.gz -C publish/linux .
 
       - name: Upload Linux Artifacts
@@ -79,7 +78,7 @@ jobs:
           name: build-artifacts-linux
           path: artifacts/*
 
-   # Джоба для релиза (создание релиза в GitHub)
+   #  Джоба для релиза (создание релиза в GitHub)
   release:
     name: Create GitHub Release
     needs: [build_windows, build_linux]
