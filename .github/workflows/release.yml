@@ -25,7 +25,7 @@ jobs:
 
       - name: Run dotnet format (syntax and style check)
         run: |
-          dotnet format AvaloniaTest.csproj || echo "Code format check failed, but continuing."
+          dotnet format AvaloniaTest.csproj --verify-no-changes || echo "Code format check failed, but continuing."
 
       - name: Run static analysis
         run: |
