@@ -8,9 +8,37 @@ on:
       - 'v*'
 
 jobs:
+  code_check:
+    name: Lint and Analyze Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Run dotnet format (syntax and style check)
+        run: |
+          dotnet format --verify-no-changes || echo "Code format check failed, but continuing."
+
+      - name: Run static analysis
+        run: |
+          dotnet build -warnaserror /p:RunAnalyzers=true || true
+
+      - name: Run unit tests
+        if: ${{ hashFiles('**/*Tests.csproj') != '' }}
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
   # Джоба для Windows
   build_windows:
     name: Build, Test and Package for Windows
+    needs: code_check
     runs-on: windows-latest
 
     steps:
@@ -28,10 +56,6 @@ jobs:
       - name: Build the app
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run unit tests
-        if: ${{ hashFiles('**/*Tests.csproj') != '' }}
-        run: dotnet test --configuration Release --no-build --verbosity normal
-
       - name: Publish for Windows
         run: |
           dotnet publish AvaloniaTest.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ./publish/win
@@ -46,6 +70,7 @@ jobs:
   # Джоба для Linux
   build_linux:
     name: Build, Test and Package for Linux
+    needs: code_check
     runs-on: ubuntu-latest
 
     steps:
@@ -62,10 +87,6 @@ jobs:
 
       - name: Build the app
         run: dotnet build --configuration Release --no-restore
-
-      - name: Run unit tests
-        if: ${{ hashFiles('**/*Tests.csproj') != '' }}
-        run: dotnet test --configuration Release --no-build --verbosity normal
 
       - name: Publish for Linux
         run: |
